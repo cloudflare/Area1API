@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 #
-# (c) 2016, Area 1 Security
+# (c) 2017, Area 1 Security
 #
 # Sample code demonstrating the Area 1 Security remote API.
-# Version 1.4
+# Version 1.5
 #
 #
 
@@ -13,21 +13,19 @@ from traceback  import print_exc
 from operator   import or_
 from urlparse   import urljoin
 from copy       import deepcopy as clone
-from json       import dumps
+from json       import dumps, loads
 
 import os, sys, time, argparse
 import datetime as dt
-import ast
 import csv
 import urllib2
 import base64
 
 AREA1_ENDPOINT   = 'https://papillon.area1security.com/'
-AREA1_ENDPOINT   = 'http://p3-qa-papillon:8080/papillon/'
 BLOCKABLE_QUERY  = 'blockable-indicators?since={since}&end={end}'
 MALICIOUS_QUERY  = 'malicious-indicators?since={since}'
 TAG_RESPONSE_KEY = 'tags'
-TAG_HISTORY_KEY  = 'tag_histories'
+NON_CSV_KEYS     = ('categories', 'tags', 'threat_categories', 'tag_histories')
 TIMESTAMP_KEYS   = ('first_detected', )
 
 def fetch(url, creds):
@@ -36,7 +34,7 @@ def fetch(url, creds):
 
     try:
         resp = urllib2.urlopen(request)
-        return ast.literal_eval(resp.read())
+        return loads(resp.read())
     except urllib2.HTTPError as e:
         print("Status Code: '{}'.".format(e.code), file=sys.stderr, end='')
         if e.code == 401:
@@ -52,10 +50,6 @@ def indicator_to_dictionary(indicator, convert_timestamp = False):
     result = clone(indicator)
     result.update(tags)
 
-    for key in (TAG_HISTORY_KEY, TAG_RESPONSE_KEY):
-        if key in result:
-            del result[key]
-
     if convert_timestamp:
         for key in TIMESTAMP_KEYS:
             if key in result:
@@ -68,8 +62,10 @@ def dictionaries_to_json(dictionaries):
         yield dumps(dictionary)
 
 def dictionaries_to_csv(dictionaries):
-    key_space = list(reduce(or_, [set(dictionary.keys()) for dictionary in dictionaries]))
-    header    = ','.join(key_space)
+    key_space = list(reduce(or_, [set(k for k in dictionary.keys() if k not in NON_CSV_KEYS) \
+                                  for dictionary in dictionaries]))
+
+    header = ','.join(key_space)
     yield header
 
     for dictionary in dictionaries:
