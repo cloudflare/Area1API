@@ -76,7 +76,12 @@ def dictionaries_to_csv(dictionaries):
     yield header
 
     for dictionary in dictionaries:
-        yield ','.join(map(str, [dictionary.get(key, '') for key in key_space]))
+        try:
+            yield ','.join(map(str, [dictionary.get(key, '') for key in key_space]))
+        except UnicodeDecodeError:
+            yield ','.join(map(str, [dictionary.get(key, '').encode('ascii','replace') for key in key_space]))
+        except:
+            continue
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=
