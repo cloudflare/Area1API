@@ -1,6 +1,6 @@
 # API
 
-`Version 1.6`
+`Version 1.7`
 
 **Sample API code for public use by customers.**
 

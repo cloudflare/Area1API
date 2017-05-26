@@ -4,7 +4,7 @@
 # (c) 2016-2017, Area 1 Security
 #
 # Sample code demonstrating the Area 1 Security remote API.
-# Version 1.6
+# Version 1.7
 #
 #
 
@@ -26,7 +26,14 @@ INDICATOR_QUERY  = 'indicators?since={since}&end={end}'
 ACTOR_QUERY      = 'actors'
 TAG_RESPONSE_KEY = 'tags'
 NON_CSV_KEYS     = ('categories', 'tags', 'threat_categories', 'tag_histories', 'aliases')
+DESIRED_ORDER    = {'indicator': 0, 'name': 1, 'type': 2, 'item_name': 3, 'item_type': 4,
+                    'threat_name': 5, 'description': 6, 'overall_confidence': 7, 'first_seen': 8, 'last_seen': 9}
 TIMESTAMP_KEYS   = ('first_detected', 'first_seen', 'last_seen')
+
+
+def get_order(key):
+    return DESIRED_ORDER.get(key, len(DESIRED_ORDER))
+
 
 def fetch(url, creds):
     request = urllib2.Request(url)
@@ -71,6 +78,7 @@ def dictionaries_to_csv(dictionaries):
     if not len(dictionaries): return
     key_space = list(reduce(or_, [set(k for k in dictionary.keys() if k not in NON_CSV_KEYS) \
                                   for dictionary in dictionaries]))
+    key_space.sort(key=get_order)
 
     header = ','.join(key_space)
     yield header
