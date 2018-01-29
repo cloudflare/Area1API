@@ -4,7 +4,7 @@
 # (c) 2016-2017, Area 1 Security
 #
 # Sample code demonstrating the Area 1 Security remote API.
-# Version 1.7
+# Version 2.0
 #
 #
 
@@ -71,8 +71,8 @@ def indicator_to_dictionary(indicator, convert_timestamp = False):
     return result
 
 def dictionaries_to_json(dictionaries):
-    for dictionary in dictionaries:
-        yield dumps(dictionary)
+    for line in dumps(dictionaries, indent=4).split('\n'):
+        yield line        
 
 def dictionaries_to_csv(dictionaries):
     if not len(dictionaries): return
